@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Birthday — a little book</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23FBF2E3'/%3E%3Cg fill='none' stroke='%233A2A21' stroke-width='2'%3E%3Ccircle cx='32' cy='32' r='5' fill='%23EFC25F'/%3E%3Cg%3E%3Cellipse cx='32' cy='17' rx='4' ry='9'/%3E%3Cellipse cx='32' cy='47' rx='4' ry='9'/%3E%3Cellipse cx='17' cy='32' rx='9' ry='4'/%3E%3Cellipse cx='47' cy='32' rx='9' ry='4'/%3E%3Cellipse cx='21' cy='21' rx='4' ry='8' transform='rotate(-45 21 21)'/%3E%3Cellipse cx='43' cy='43' rx='4' ry='8' transform='rotate(-45 43 43)'/%3E%3Cellipse cx='43' cy='21' rx='4' ry='8' transform='rotate(45 43 21)'/%3E%3Cellipse cx='21' cy='43' rx='4' ry='8' transform='rotate(45 21 43)'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* ===== fonts ===== */
+@font-face{font-family:"Caveat";src:url("assets/fonts/caveat-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Caveat";src:url("assets/fonts/caveat-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Caveat";src:url("assets/fonts/caveat-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Caveat Brush";src:url("assets/fonts/caveat-brush-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Kalam";src:url("assets/fonts/kalam-latin-300-normal.woff2") format("woff2");font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:"Kalam";src:url("assets/fonts/kalam-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Kalam";src:url("assets/fonts/kalam-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+
+/* ===== tokens ===== */
+:root{
+  --paper:#FBF2E3;
+  --paper-2:#F7E8D1;
+  --paper-3:#F1DCBE;
+  --ink:#3A2A21;
+  --ink-2:#6E5748;
+  --coral:#EE7E64;
+  --coral-2:#D4573F;
+  --butter:#EFC25F;
+  --sage:#8B9963;
+  --sky:#9BB4CE;
+
+  --pw: min(42vw, 440px, calc(66vh / 1.34));
+  --ph: calc(var(--pw) * 1.34);
+  --persp: calc(var(--pw) * 3.2);
+
+  --hand:"Caveat","Segoe Script","Bradley Hand","Comic Sans MS",cursive;
+  --marker:"Caveat Brush","Caveat","Segoe Script","Bradley Hand",cursive;
+  --note:"Kalam","Segoe Print","Bradley Hand",cursive;
+
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  overflow:hidden;
+  color:var(--ink);
+  font-family:var(--hand);
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(85% 65% at 26% 8%, #FFFCF5 0%, rgba(255,252,245,0) 62%),
+    radial-gradient(75% 60% at 84% 96%, #F0DCBE 0%, rgba(240,220,190,0) 66%),
+    #F8ECD9;
+}
+
+/* warm paper grain over the whole scene */
+.grain{
+  position:fixed;inset:-15%;z-index:9;pointer-events:none;
+  background-image:var(--grain);background-size:190px 190px;
+  mix-blend-mode:multiply;opacity:.42;
+}
+
+/* faint doodles tucked into the corners, like a sketchbook page */
+.corner-doodle{position:fixed;z-index:1;opacity:.085;pointer-events:none;user-select:none}
+.corner-doodle img{display:block;width:100%;height:auto}
+.cd-a{width:min(34vw,380px);left:-6vw;top:-9vh;transform:rotate(14deg)}
+.cd-b{width:min(24vw,260px);right:-5vw;top:6vh;transform:rotate(-22deg)}
+.cd-c{width:min(26vw,290px);left:2vw;bottom:-12vh;transform:rotate(-8deg);opacity:.06}
+
+/* ===== stage ===== */
+.stage{
+  position:fixed;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  perspective:var(--persp);perspective-origin:50% 44%;
+}
+
+.book-shadow{
+  position:fixed;left:50%;top:calc(50% + var(--ph) * .44);
+  width:calc(var(--pw) * .82);height:calc(var(--pw) * .19);
+  transform:translate(-50%,-50%);
+  background:radial-gradient(50% 50% at 50% 50%, rgba(118,80,54,.38) 0%, rgba(118,80,54,.19) 44%, rgba(118,80,54,0) 74%);
+  filter:blur(9px);
+  transition:width .95s cubic-bezier(.3,.9,.3,1), opacity .6s ease;
+  z-index:1;
+}
+.stage.is-open ~ .book-shadow,
+body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
+
+.book-wrap{
+  position:relative;
+  width:calc(var(--pw) * 2);height:var(--ph);
+  transform-style:preserve-3d;
+}
+
+.book{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  transform:translateX(0) rotateX(6deg) rotateY(-12deg);
+  will-change:transform;
+  user-select:none;
+  outline:none;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.book:focus-visible .cover-front{box-shadow:0 0 0 3px rgba(238,126,100,.75), 0 26px 50px -18px rgba(90,60,40,.5)}
+
+/* ===== pages ===== */
+.page{
+  position:absolute;top:0;width:var(--pw);height:var(--ph);
+  background:
+    radial-gradient(78% 52% at 18% 6%, rgba(255,255,255,.62), rgba(255,255,255,0) 68%),
+    var(--paper);
+  overflow:hidden;
+}
+.page-right{
+  left:var(--pw);
+  border-radius:1px 7px 7px 1px;
+  box-shadow:
+    0 18px 34px -22px rgba(88,60,42,.55),
+    inset 12px 0 26px -18px rgba(120,84,58,.55);
+}
+/* stacked page edges on the outer side */
+.page-right::after{
+  content:"";position:absolute;top:1.6%;bottom:1.6%;right:0;width:6px;
+  background:repeating-linear-gradient(180deg,#fffaf0 0 2px,#e3cdaa 2px 3.4px);
+  border-radius:0 6px 6px 0;
+  opacity:.9;
+}
+
+/* gutter shading between the two halves */
+.gutter{
+  position:absolute;left:calc(50% - 8%);top:2%;width:16%;height:96%;
+  pointer-events:none;
+  transform:translateZ(2px);
+  background:linear-gradient(90deg,
+    rgba(74,50,38,0) 0%,
+    rgba(74,50,38,.09) 32%,
+    rgba(74,50,38,.19) 50%,
+    rgba(74,50,38,.07) 68%,
+    rgba(74,50,38,0) 100%);
+  opacity:0;transition:opacity .7s ease .25s;
+}
+.book.is-open .gutter{opacity:1}
+
+/* ===== cover ===== */
+.cover{
+  position:absolute;left:var(--pw);top:0;
+  width:var(--pw);height:var(--ph);
+  transform-origin:left center;
+  transform-style:preserve-3d;
+  transform:translateZ(5px) rotateY(0deg);
+  will-change:transform;
+}
+.cover-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  overflow:hidden;
+  transform:translateZ(0);
+}
+.cover-front{
+  border-radius:3px 9px 9px 3px;
+  background:
+    radial-gradient(70% 55% at 22% 8%, rgba(255,255,255,.5), rgba(255,255,255,0) 70%),
+    linear-gradient(168deg,#FAF0DE 0%, #F7E9D3 46%, #F4E1C6 100%);
+  box-shadow:
+    0 26px 50px -26px rgba(88,60,42,.62),
+    0 2px 0 rgba(255,255,255,.6) inset,
+    -1px 0 0 rgba(120,84,58,.25) inset;
+}
+.cover-inner{
+  transform:rotateY(180deg);
+  border-radius:7px 2px 2px 7px;
+  background:
+    radial-gradient(72% 50% at 30% 90%, rgba(255,255,255,.6), rgba(255,255,255,0) 70%),
+    var(--paper-2);
+  box-shadow:inset -14px 0 26px -18px rgba(120,84,58,.5);
+}
+
+/* the binding: a coral cloth strip down the spine edge */
+.spine{
+  position:absolute;left:0;top:0;width:calc(var(--pw) * .055);height:100%;
+  background:linear-gradient(90deg,#E9725A,#EF8C72 40%,#E9725A 100%);
+  box-shadow:1px 0 0 rgba(140,70,52,.35), inset -3px 0 6px -3px rgba(120,50,36,.55);
+}
+.spine::after{
+  content:"";position:absolute;left:52%;top:6%;bottom:6%;width:2px;
+  background:repeating-linear-gradient(180deg, rgba(255,240,225,.85) 0 6px, rgba(255,240,225,0) 6px 14px);
+  opacity:.7;
+}
+
+/* hand-drawn wreath as a printed frame on the cover */
+.cover-wreath{
+  position:absolute;left:50%;top:50%;width:97%;height:auto;
+  transform:translate(-50%,-50%) rotate(-3deg);
+  opacity:.95;pointer-events:none;z-index:1;
+}
+
+.cover-text{
+  position:absolute;left:50%;top:53.2%;width:74%;z-index:3;
+  transform:translate(-50%,-50%) rotate(-1.6deg);
+  text-align:center;
+}
+.t1{display:block;font-family:var(--marker);font-size:clamp(20px,calc(var(--pw)*.088),36px);line-height:.94;letter-spacing:.02em;color:var(--ink);transform:rotate(-2deg)}
+.t2{display:block;font-family:var(--marker);font-size:clamp(34px,calc(var(--pw)*.152),64px);line-height:.92;letter-spacing:-.005em;color:var(--ink)}
+.uline{display:block;width:62%;margin:calc(var(--pw)*.028) auto calc(var(--pw)*.022);opacity:.8}
+
+/* washi tape */
+.tape{
+  position:absolute;width:calc(var(--pw)*.28);height:calc(var(--pw)*.072);
+  background:
+    repeating-linear-gradient(45deg, rgba(238,126,100,.62) 0 8px, rgba(238,126,100,.28) 8px 15px);
+  box-shadow:0 1px 3px rgba(120,84,58,.18);
+  opacity:.88;mix-blend-mode:multiply;
+}
+.tape::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(255,255,255,.35));
+}
+.tape-tl{left:calc(var(--pw)*.20);top:calc(var(--pw)*-.034);transform:rotate(-6deg)}
+.tape-br{right:calc(var(--pw)*-.035);bottom:calc(var(--pw)*.155);transform:rotate(-4deg);
+  background:repeating-linear-gradient(45deg, rgba(233,183,74,.78) 0 7px, rgba(240,203,120,.42) 7px 13px)}
+
+/* folded corner, an affordance to open */
+.curl{
+  position:absolute;top:0;right:0;width:calc(var(--pw)*.13);height:calc(var(--pw)*.13);
+  background:linear-gradient(225deg,#FFFDF6 0%, #F3E2C7 55%, #EAD5B4 100%);
+  clip-path:polygon(100% 0,0 0,100% 100%);
+  box-shadow:-4px 4px 10px -4px rgba(120,84,58,.45);
+  transition:width .35s ease, height .35s ease;
+}
+.book:hover .curl{width:calc(var(--pw)*.16);height:calc(var(--pw)*.16)}
+
+.open-me{
+  position:absolute;right:calc(var(--pw)*.075);top:calc(var(--pw)*.115);
+  display:flex;align-items:center;gap:calc(var(--pw)*.014);
+  font-family:var(--note);font-size:clamp(10px,calc(var(--pw)*.034),15px);
+  color:var(--ink-2);letter-spacing:.04em;white-space:nowrap;
+  transform:rotate(-2deg);
+}
+.open-me svg{width:calc(var(--pw)*.062);height:auto;opacity:.75;transform:rotate(-42deg);animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translate(0,0) rotate(-42deg)}50%{transform:translate(3px,-4px) rotate(-48deg)}}
+
+/* ===== inside: left page (endpaper) ===== */
+.endpaper-dots{
+  position:absolute;inset:0;
+  background-image:radial-gradient(rgba(110,87,72,.13) .9px, transparent 1px);
+  background-size:calc(var(--pw)*.036) calc(var(--pw)*.036);
+  opacity:.55;pointer-events:none;
+}
+.lp-note{
+  position:absolute;left:8%;top:7%;width:56%;
+  transform:rotate(-2.6deg);
+  font-size:clamp(13px,calc(var(--pw)*.042),18px);line-height:1.32;color:var(--ink-2);
+  margin:0;
+}
+.lp-note b{display:block;font-family:var(--marker);font-weight:400;font-size:clamp(15px,calc(var(--pw)*.052),22px);color:var(--ink);letter-spacing:.01em}
+.lp-arrow{position:absolute;left:23%;top:24%;width:34%;opacity:.4;transform:rotate(-8deg)}
+.sticker{
+  position:absolute;left:8%;top:60%;width:calc(var(--pw)*.21);
+  background:#FFFCF5;border-radius:50%;
+  padding:calc(var(--pw)*.014);
+  box-shadow:0 3px 9px -3px rgba(88,60,42,.55), 0 0 0 1px rgba(255,255,255,.6) inset;
+  transform:rotate(-11deg);
+}
+.sticker img{display:block;width:100%;height:auto;border-radius:50%}
+.stamp{
+  position:absolute;left:8%;bottom:11%;width:calc(var(--pw)*.21);height:calc(var(--pw)*.21);
+  color:rgba(74,50,38,.52);transform:rotate(7deg);
+}
+.stamp svg{width:100%;height:100%}
+
+/* ===== inside: right page ===== */
+.rp-inner{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  padding:10% 12% 8.5% 12%;
+}
+.wish{
+  margin:0;font-family:var(--marker);font-weight:400;color:var(--ink);
+  line-height:.92;letter-spacing:-.008em;transform:rotate(-1.4deg);
+}
+.wish .w1{display:block;font-size:clamp(15px,calc(var(--pw)*.062),26px);opacity:.92}
+.wish .w2{display:block;font-size:clamp(27px,calc(var(--pw)*.118),51px)}
+.wish-line{display:block;width:62%;height:auto;margin:calc(var(--pw)*.024) 0 calc(var(--pw)*.055);opacity:.72}
+.msg{
+  margin:0;max-width:100%;
+  font-size:clamp(14px,calc(var(--pw)*.049),21px);
+  line-height:1.46;color:rgba(58,42,33,.86);
+  text-wrap:pretty;
+}
+.msg .hello{
+  display:block;
+  font-family:var(--hand);font-size:1.34em;line-height:1.06;
+  color:var(--ink);letter-spacing:.01em;
+  margin-bottom:calc(var(--pw)*.028);
+}
+.sign{
+  margin:auto 0 0 auto;
+  font-family:var(--note);font-size:clamp(11px,calc(var(--pw)*.034),15px);
+  letter-spacing:.045em;color:var(--ink-2);transform:rotate(-2deg);
+  display:flex;align-items:center;gap:.35em;
+}
+.sign svg{width:clamp(11px,calc(var(--pw)*.036),16px);height:auto;opacity:.7}
+/* soft paper fade at the letter's bottom edge while there is more to read */
+.msg.fade{
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
+          mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
+}
+.tape-page{
+  position:absolute;left:26%;top:0;width:44%;height:calc(var(--pw)*.05);
+  transform:rotate(-1.2deg) translateY(-40%);
+  background:repeating-linear-gradient(45deg, rgba(155,180,206,.66) 0 8px, rgba(155,180,206,.3) 8px 15px);
+}
+.tape-page::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 50%, rgba(255,255,255,.4));
+}
+/* content on the inside page fades up with the flip */
+.rp-inner > *{opacity:0;transform:translateY(6px);transition:opacity .75s ease .35s, transform .85s cubic-bezier(.2,.8,.3,1) .35s}
+.book.is-open .rp-inner > *{opacity:1;transform:translateY(0)}
+.book.is-open .wish{transform:rotate(-1.4deg) translateY(0)}
+
+/* ===== the pressed specimens ===== */
+.garden{
+  position:absolute;inset:0;pointer-events:none;
+  z-index:4;
+}
+.slot{
+  position:absolute;left:var(--l);bottom:var(--b);
+  width:var(--w,34%);height:var(--h,40%);
+  transform:translateX(-50%);
+  pointer-events:none;
+}
+.flower{
+  position:absolute;inset:0;
+  transform-origin:50% 100%;
+  opacity:0;
+  transform:rotate(var(--r,0deg)) scaleY(.42) translateY(6%);
+  transition:transform .34s cubic-bezier(.5,0,.7,.3),
+             opacity .22s ease;
+  will-change:transform;
+  pointer-events:none;
+}
+.flower .art{
+  display:block;width:100%;height:100%;object-fit:contain;object-position:bottom;
+  filter:drop-shadow(1px 5px 4px rgba(96,62,44,.24));
+  transition:transform .45s cubic-bezier(.2,.8,.3,1);
+  pointer-events:none;
+}
+.flower:hover .art{transform:scale(1.035) rotate(1.2deg)}
+.book.is-open .flower{
+  opacity:1;transform:rotate(var(--r,0deg));
+  pointer-events:auto;cursor:pointer;
+  transition:transform 1.15s cubic-bezier(.16,.86,.3,1.02) var(--d,0s),
+             opacity .4s ease var(--d,0s);
+}
+
+/* washi tape holding each specimen down */
+.ptape{
+  position:absolute;left:var(--l);bottom:var(--b);
+  width:calc(var(--pw)*.10);height:calc(var(--pw)*.034);
+  transform:translate(-50%,50%) rotate(var(--rot,-28deg));
+  background:var(--bg,rgba(239,194,95,.42));
+  border-radius:2px;
+  opacity:0;
+  transition:opacity .18s ease;
+  filter:drop-shadow(0 1px 1px rgba(96,62,44,.18));
+}
+.ptape::after{
+  content:"";position:absolute;inset:0;border-radius:2px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,0) 18% 82%, rgba(255,255,255,.45)),
+    repeating-linear-gradient(48deg, rgba(255,255,255,.42) 0 3px, rgba(255,255,255,0) 3px 9px);
+}
+.book.is-open .ptape{opacity:1;transition:opacity .5s ease .7s}
+
+/* butterfly gets its own flutter instead of the pop-up */
+.s-bfly .flower{transform:none;transform-origin:50% 60%}
+.book.is-open .s-bfly .flower{opacity:1;transform:none;pointer-events:auto;cursor:pointer;animation:flit 5.4s ease-in-out infinite}
+@keyframes flit{
+  0%{transform:rotate(-4deg) translate(0,0) scaleX(1)}
+  22%{transform:rotate(5deg) translate(4%,-9%) scaleX(.94)}
+  48%{transform:rotate(-3deg) translate(-3%,-3%) scaleX(1)}
+  72%{transform:rotate(6deg) translate(3%,6%) scaleX(.93)}
+  100%{transform:rotate(-4deg) translate(0,0) scaleX(1)}
+}
+
+/* ===== extra layers ===== */
+.petals{position:fixed;inset:0;z-index:6;pointer-events:none;overflow:hidden}
+.petal{
+  position:absolute;width:calc(var(--pw)*.024);height:calc(var(--pw)*.034);
+  border-radius:50% 50% 46% 54% / 64% 60% 40% 36%;
+  opacity:0;
+  animation:fall var(--dur,3s) cubic-bezier(.32,.3,.5,1) var(--delay,0s) forwards;
+}
+@keyframes fall{
+  0%{transform:translate3d(0,-8vh,0) rotate(0deg) scale(.7);opacity:0}
+  14%{opacity:.9}
+  100%{transform:translate3d(var(--dx,18px),58vh,0) rotate(var(--spin,220deg)) scale(1);opacity:0}
+}
+.spark{
+  position:fixed;width:30px;height:30px;z-index:11;pointer-events:none;
+  margin:-15px 0 0 -15px;color:var(--coral-2);
+  animation:sparkPop .7s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes sparkPop{
+  0%{transform:scale(.35) rotate(-12deg);opacity:0}
+  35%{opacity:.95}
+  100%{transform:scale(1.4) rotate(18deg);opacity:0}
+}
+
+.hint{
+  position:fixed;left:50%;bottom:max(16px,3vh);z-index:8;
+  transform:translateX(-50%);
+  font-family:var(--note);font-size:13px;letter-spacing:.05em;
+  color:rgba(110,87,72,.8);white-space:nowrap;text-align:center;
+  transition:opacity .45s ease;
+}
+.hint.is-faded{opacity:0}
+
+/* sound toggle, drawn like a little ink doodle */
+.sound{
+  position:fixed;right:10px;top:10px;z-index:12;
+  width:46px;height:46px;display:grid;place-items:center;
+  background:none;border:0;padding:0;cursor:pointer;color:var(--ink-2);
+  opacity:.55;transition:opacity .3s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.sound:hover{opacity:.95}
+.sound svg{width:22px;height:22px}
+
+/* ===== narrow screens ===== */
+@media (max-width:760px){
+  :root{
+    --pw:min(45vw,calc(58vh / 1.42));
+    --ph:calc(var(--pw) * 1.42);
+    --persp:calc(var(--pw) * 6.5);
+  }
+  .corner-doodle{opacity:.06}
+  .cd-a{width:52vw;left:-10vw;top:-4vh}
+  .cd-b{width:42vw;right:-12vw;top:16vh}
+  .cd-c{display:none}
+  .stage{padding-bottom:5vh}
+  .book-wrap{margin-left:0}
+  .t1{font-size:17px;letter-spacing:.01em}
+  .t2{font-size:29px}
+  .uline{width:56%}
+  .open-me{font-size:11px}
+  .rp-inner{padding:6% 6.5% 3.5% 7%}
+  /* a phone page is too short for a long letter: the note scrolls under a paper
+     fade instead of being cut off mid-sentence */
+  .msg{
+    font-size:12.5px;line-height:1.42;
+    flex:1 1 auto;min-height:0;
+    overflow-y:auto;overscroll-behavior:contain;
+    touch-action:pan-y;
+    scrollbar-width:none;
+  }
+  .msg::-webkit-scrollbar{display:none}
+  .msg .hello{font-size:1.2em;margin-bottom:calc(var(--pw)*.018)}
+  .wish-line{margin:calc(var(--pw)*.02) 0 calc(var(--pw)*.038)}
+  .wish{margin-top:8%}
+  .wish-line{width:64%;margin:calc(var(--pw)*.02) 0 calc(var(--pw)*.035)}
+  .lp-note{font-size:11px;width:64%;line-height:1.36}
+  .lp-arrow{top:34%;left:20%;width:28%}
+  .sticker{width:calc(var(--pw)*.185);top:52%;left:5%}
+  .s-leaf{--l:52%!important}
+  .s-daisy{--l:62%!important}
+  .s-poppy{--l:74%!important}
+  .s-buds{--l:85%!important}
+  .t-leaf{--l:52%!important}
+  .t-daisy{--l:62%!important}
+  .t-poppy{--l:74%!important}
+  .t-buds{--l:85%!important}
+  .ptape{width:calc(var(--pw)*.15);height:calc(var(--pw)*.045)}
+  .stamp{display:none}
+  .hint{font-size:12px;letter-spacing:.03em;bottom:max(24px,19vh)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .flower,.tape,.cover,.book,.gutter,.rp-inner > *{transition-duration:.001s!important;transition-delay:0s!important}
+  .open-me svg,.book.is-open .s-bfly .flower{animation:none!important}
+  .petal,.spark{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<button class="sound" id="soundBtn" type="button" aria-pressed="false" aria-label="Toggle page sounds">
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M4 9.6 L8.4 9.2 L13 5.4 L13 18.6 L8.4 15 L4 14.6 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path id="wave1" d="M16.4 9.4 C17.6 10.6 17.6 13.4 16.4 14.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path id="wave2" d="M19.2 7.4 C21.2 9.6 21.2 14.4 19.2 16.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path id="muteSlash" d="M3.4 3.2 L20.6 20.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none"/>
+  </svg>
+</button>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<div class="corner-doodle cd-a" aria-hidden="true"><img src="assets/scribble-tangle.webp" alt=""></div>
+<div class="corner-doodle cd-b" aria-hidden="true"><img src="assets/scribble-tangle.webp" alt=""></div>
+<div class="corner-doodle cd-c" aria-hidden="true"><img src="assets/scribble-tangle.webp" alt=""></div>
+
+<div class="book-shadow" aria-hidden="true"></div>
+
+<main class="stage" id="stage">
+  <div class="book-wrap">
+    <div class="book" id="book" role="button" tabindex="0" aria-expanded="false" aria-label="Open the birthday book">
+      <div class="page page-right" id="rightPage">
+        <div class="tape-page" aria-hidden="true"></div>
+        <div class="rp-inner">
+          <h1 class="wish"><span class="w1">Happy</span><span class="w2">Birthday</span></h1>
+          <svg class="wish-line" viewBox="0 0 220 22" fill="none" aria-hidden="true">
+            <path d="M5 11 C 46 3, 92 18, 140 7 S 199 5, 216 12" stroke="#3A2A21" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M8 17 C 58 11, 120 18, 214 12" stroke="#3A2A21" stroke-width=".9" stroke-linecap="round" opacity=".45"/>
+          </svg>
+
+          <!-- EDIT HERE: replace this paragraph with your own birthday message -->
+          <p class="msg"><span class="hello">Dear Daviani,</span>Another year of you and the world is better for it. Thank you for the presence and steady ways you make ordinary days into the good part of a story. Getting to know you and being in one class with you at grade 10 was truly a blessing. I hope this coming year is fun to you, full of things that makes you laugh, and your dreams come true. Wish you all the best future koor bid 8!</p>
+          <!-- /EDIT -->
+
+          <p class="sign">with love
+            <svg viewBox="0 0 24 22" fill="none" aria-hidden="true">
+              <path d="M12 19 C 4 13, 2 8, 5.5 5.5 C 8.5 3.4, 11.4 5.6, 12 8 C 12.6 5.6, 15.5 3.4, 18.5 5.5 C 22 8, 20 13, 12 19 Z" stroke="#6E5748" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </p>
+        </div>
+      </div>
+      <div class="gutter" aria-hidden="true"></div>
+      <div class="cover" id="cover">
+        <div class="cover-face cover-front">
+          <div class="spine" aria-hidden="true"></div>
+          <img class="cover-wreath" src="assets/wreath.webp" alt="" aria-hidden="true">
+          <div class="cover-text">
+            <span class="t1">Happy</span>
+            <span class="t2">Birthday</span>
+            <svg class="uline" viewBox="0 0 220 22" fill="none" aria-hidden="true">
+              <path d="M6 12 C 42 4, 96 18, 138 8 S 196 6, 214 12" stroke="#3A2A21" stroke-width="2.1" stroke-linecap="round"/>
+              <path d="M9 17 C 54 11, 116 19, 212 13" stroke="#3A2A21" stroke-width="1" stroke-linecap="round" opacity=".5"/>
+            </svg>
+          </div>
+          <div class="tape tape-tl" aria-hidden="true"></div>
+          <div class="tape tape-br" aria-hidden="true"></div>
+          <div class="curl" aria-hidden="true"></div>
+          <div class="open-me" aria-hidden="true">open me
+            <svg viewBox="0 0 60 34" fill="none"><path d="M3 27 C 14 12, 32 6, 50 8" stroke="#6E5748" stroke-width="1.6" stroke-linecap="round"/><path d="M44 3 L 51 8.2 L 44.4 13" stroke="#6E5748" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+
+        <div class="cover-face cover-inner">
+          <div class="endpaper-dots" aria-hidden="true"></div>
+          <p class="lp-note"><b>just for you,</b>picked from the garden this morning</p>
+          <svg class="lp-arrow" viewBox="0 0 120 40" fill="none" aria-hidden="true">
+            <path d="M4 6 C 24 26, 62 32, 110 20" stroke="#3A2A21" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M100 12 L 112 20 L 99 27" stroke="#3A2A21" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <div class="sticker"><img src="assets/flower-blue.webp" alt=""></div>
+          <div class="stamp" aria-hidden="true">
+            <svg viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="38" stroke="#4A3226" stroke-width="1.6" stroke-dasharray="7 5" stroke-linecap="round" opacity=".8"/>
+              <circle cx="50" cy="50" r="30" stroke="#4A3226" stroke-width="1" opacity=".55"/>
+              <text x="50" y="43" text-anchor="middle" font-family="Kalam, cursive" font-size="11" fill="#4A3226">hand</text>
+              <text x="50" y="57" text-anchor="middle" font-family="Kalam, cursive" font-size="11" fill="#4A3226">pressed</text>
+              <text x="50" y="70" text-anchor="middle" font-family="Kalam, cursive" font-size="8" fill="#4A3226" opacity=".8">no. 01</text>
+            </svg>
+          </div>
+
+          <!-- pressed specimens: page content, so they never fight the page plane -->
+          <div class="garden" id="garden" aria-hidden="true">
+          <div class="slot s-leaf" style="--l:46%;--b:17%;--h:44%;--w:30%;--d:.20s;--r:-13deg"><div class="flower"><img class="art" src="assets/leaf-sprig.webp" alt=""></div></div>
+          <div class="slot s-daisy" style="--l:56%;--b:16.5%;--h:52%;--w:31%;--d:0s;--r:-9deg"><div class="flower"><img class="art" src="assets/flower-daisy.webp" alt=""></div></div>
+          <div class="slot s-poppy" style="--l:69%;--b:17%;--h:40%;--w:26%;--d:.10s;--r:-15deg"><div class="flower"><img class="art" src="assets/flower-poppy.webp" alt=""></div></div>
+          <div class="slot s-buds" style="--l:82%;--b:17.5%;--h:33%;--w:21%;--d:.24s;--r:7deg"><div class="flower"><img class="art" src="assets/flower-buds.webp" alt=""></div></div>
+          <div class="slot s-bfly" style="--l:84%;--b:74%;--h:7%;--w:9%;--d:.55s"><div class="flower"><img class="art" src="assets/butterfly.webp" alt=""></div></div>
+          <i class="ptape t-leaf" style="--l:46%;--b:17%;--rot:-26deg;--bg:rgba(139,153,99,.46)"></i>
+          <i class="ptape t-daisy" style="--l:56%;--b:16.5%;--rot:6deg;--bg:rgba(239,194,95,.6)"></i>
+          <i class="ptape t-poppy" style="--l:69%;--b:17%;--rot:-14deg;--bg:rgba(238,126,100,.52)"></i>
+          <i class="ptape t-buds" style="--l:82%;--b:17.5%;--rot:18deg;--bg:rgba(155,180,206,.54)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="hint" id="hint"><span id="hintText">click the book to open</span></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var book     = document.getElementById("book");
+  var cover    = document.getElementById("cover");
+  var garden   = document.getElementById("garden");
+  var hintText = document.getElementById("hintText");
+  var petalBox = document.getElementById("petals");
+  var soundBtn = document.getElementById("soundBtn");
+  var msg      = document.querySelector(".msg");
+
+  /* the letter can scroll on a phone page: fade its bottom edge while more remains */
+  if (msg) {
+    var fadeState = function () {
+      var more = msg.scrollHeight - msg.clientHeight - msg.scrollTop > 2;
+      msg.classList.toggle("fade", more);
+    };
+    msg.addEventListener("scroll", fadeState, { passive: true });
+    window.addEventListener("resize", fadeState);
+    setTimeout(fadeState, 60);
+  }
+
+  var MAX = 168;                 /* how far the cover swings */
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pw = 400;
+
+  /* ---------- state ---------- */
+  var S = {
+    flip: 0, flipT: 0,            /* current / target cover angle */
+    rx: 16, ry: -18,              /* current tilt, intro settles into base */
+    rxT: 6, ryT: -12,
+    open: false, bloomed: false,
+    dragging: false, dragX: 0, moved: 0,
+    tw: null                      /* running page-turn tween */
+  };
+
+  var OPEN_MS = 920, CLOSE_MS = 760;
+  function easePage(u) {         /* lift off, carry through, settle */
+    return u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+  }
+  function tweenTo(target, dur) {
+    S.flipT = target;
+    if (RM) { S.flip = target; S.tw = null; return; }
+    S.tw = { from: S.flip, to: target, t0: performance.now(), dur: dur };
+  }
+
+  function measure() {
+    pw = cover.offsetWidth || 400;
+    S.sMin = window.innerWidth <= 760 ? 1.26 : 1;   /* closed cover reads bigger on phones */
+  }
+
+  /* ---------- rendering ---------- */
+  function paint() {
+    var p = Math.min(1, Math.abs(S.flip) / MAX);
+    var s = S.sMin + (1 - S.sMin) * p;
+    var shift = -pw / 2 * (1 - p) - (s - 1) * pw / 2;
+
+    book.style.transform =
+      "translateX(" + shift.toFixed(2) + "px) rotateX(" + S.rx.toFixed(2) +
+      "deg) rotateY(" + S.ry.toFixed(2) + "deg) rotateZ(-1.2deg)";
+    book.style.setProperty("--rx", S.rx.toFixed(2));
+    book.style.setProperty("--ry", S.ry.toFixed(2));
+    /* the cover lifts off the page mid-swing, so it arcs instead of hinging flat */
+    var lift = Math.sin(p * Math.PI) * 13;
+    cover.style.transform =
+      "translateZ(" + (5 + lift).toFixed(2) + "px) rotateY(" + S.flip.toFixed(2) + "deg) scale(" + s.toFixed(3) + ")";
+
+    if (!S.bloomed && (S.open || S.dragging) && p > 0.4) bloom();
+  }
+
+  var last = performance.now();
+  function frame(t) {
+    var dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    var k = 1 - Math.exp(-dt * 8.2);
+
+    if (RM) {
+      S.flip = S.flipT; S.rx = S.rxT; S.ry = S.ryT;
+    } else {
+      if (S.tw) {
+        var u = (t - S.tw.t0) / S.tw.dur;
+        if (u >= 1) { S.flip = S.tw.to; S.flipT = S.tw.to; S.tw = null; }
+        else if (u > 0) { S.flip = S.tw.from + (S.tw.to - S.tw.from) * easePage(u); }
+      }
+      S.rx   += (S.rxT - S.rx) * k;
+      S.ry   += (S.ryT - S.ry) * k;
+      if (Math.abs(S.rxT - S.rx) < 0.003) S.rx = S.rxT;
+      if (Math.abs(S.ryT - S.ry) < 0.003) S.ry = S.ryT;
+    }
+    paint();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- open / close ---------- */
+  function bloom() {
+    S.bloomed = true;
+    book.classList.add("is-open");
+    document.body.classList.add("is-open");
+    hintText.textContent = "click anywhere on the spread to close";
+    petals();
+    chime();
+  }
+
+  function wither() {
+    S.bloomed = false;
+    book.classList.remove("is-open");
+    document.body.classList.remove("is-open");
+    hintText.textContent = "click the book to open";
+  }
+
+  function openBook() {
+    if (S.open) return;
+    S.open = true;
+    book.setAttribute("aria-expanded", "true");
+    tweenTo(-MAX, OPEN_MS);
+    whoosh();
+  }
+
+  function closeBook() {
+    /* also covers a drag that was pulled past the bloom point and released short */
+    if (!S.open && !S.bloomed) return;
+    S.open = false;
+    book.setAttribute("aria-expanded", "false");
+    if (S.bloomed) wither();
+    tweenTo(0, CLOSE_MS);
+    whoosh();
+  }
+
+  function toggle() { S.open ? closeBook() : openBook(); }
+
+  /* a scrollable letter must not be hijacked by the book's drag / tap-to-close */
+  function onLetter(e) {
+    return !!(msg && S.open && e.target && e.target.closest && e.target.closest(".msg")) &&
+           (msg.scrollHeight - msg.clientHeight > 2);
+  }
+
+  /* ---------- pointer: click to toggle, drag to open ---------- */
+  book.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (onLetter(e)) return;
+    S.dragging = true;
+    S.dragX = e.clientX;
+    S.moved = 0;
+    S.flip0 = S.flip;            /* grab whatever the cover is doing right now */
+    S.tw = null;
+    try { book.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  book.addEventListener("pointermove", function (e) {
+    if (!S.dragging || S.open) return;
+    var dx = e.clientX - S.dragX;
+    if (Math.abs(dx) > S.moved) S.moved = Math.abs(dx);
+    var prog = Math.min(1, Math.max(0, (-S.flip0 / MAX) - dx / (pw * 1.25)));
+    S.flip = S.flipT = -MAX * prog;
+    document.body.style.cursor = "grabbing";
+  });
+
+  function endDrag(e) {
+    if (!S.dragging) return;
+    S.dragging = false;
+    document.body.style.cursor = "";
+    var p = Math.abs(S.flip) / MAX;
+    if (S.open) {
+      if (p < 0.22) closeBook(); else tweenTo(-MAX, OPEN_MS);
+    } else {
+      if (p > 0.22) openBook(); else closeBook();
+    }
+    if (S.moved > 6) {
+      /* swallow the click that follows a drag */
+      var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+      book.addEventListener("click", stop, { capture: true, once: true });
+      setTimeout(function () { S.moved = 0; }, 40);
+    }
+  }
+  book.addEventListener("pointerup", endDrag);
+  book.addEventListener("pointercancel", endDrag);
+
+  book.addEventListener("click", function (e) {
+    if (e.target.closest(".flower")) return;
+    if (S.moved > 6) return;
+    if (onLetter(e)) {           /* tap the letter: read on, and close once it's finished */
+      var end = msg.scrollTop + msg.clientHeight >= msg.scrollHeight - 4;
+      if (end) closeBook();
+      else msg.scrollTo({ top: Math.min(msg.scrollTop + msg.clientHeight - 12, msg.scrollHeight), behavior: "smooth" });
+      return;
+    }
+    toggle();
+  });
+
+  book.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  /* ---------- parallax tilt ---------- */
+  window.addEventListener("pointermove", function (e) {
+    if (S.dragging || e.pointerType === "touch") return;
+    var nx = e.clientX / window.innerWidth - 0.5;
+    var ny = e.clientY / window.innerHeight - 0.5;
+    S.ryT = -12 + nx * 5.5;
+    S.rxT = 6 + ny * 4;
+  }, { passive: true });
+
+  document.addEventListener("pointerleave", function () {
+    S.ryT = -12; S.rxT = 6;
+  });
+
+  /* ---------- flowers ---------- */
+  Array.prototype.forEach.call(garden.querySelectorAll(".flower"), function (f) {
+    f.addEventListener("click", function (e) {
+      e.stopPropagation();
+      spark(e.clientX, e.clientY);
+    });
+  });
+
+  function spark(x, y) {
+    var s = document.createElement("div");
+    s.className = "spark";
+    s.style.left = x + "px";
+    s.style.top = y + "px";
+    s.innerHTML =
+      '<svg viewBox="0 0 32 32" fill="none"><path d="M16 3 L18.5 12.5 L28 16 L18.5 19.5 L16 29 L13.5 19.5 L4 16 L13.5 12.5 Z" stroke="#D4573F" stroke-width="1.6" fill="#EFC25F" fill-opacity=".5"/></svg>';
+    document.body.appendChild(s);
+    setTimeout(function () { s.remove(); }, 760);
+  }
+
+  /* ---------- one burst of petals when the page opens ---------- */
+  function petals() {
+    if (RM) return;
+    var colors = ["#EE7E64", "#EFC25F", "#9BB4CE", "#8B9963"];
+    for (var i = 0; i < 15; i++) {
+      (function (i) {
+        var p = document.createElement("div");
+        p.className = "petal";
+        p.style.left = (16 + Math.random() * 68) + "vw";
+        p.style.top = "10vh";
+        p.style.background = colors[i % colors.length];
+        p.style.setProperty("--dx", (Math.random() * 160 - 80).toFixed(1) + "px");
+        p.style.setProperty("--spin", (Math.random() * 460 - 180).toFixed(0) + "deg");
+        p.style.setProperty("--dur", (2.6 + Math.random() * 1.8).toFixed(2) + "s");
+        p.style.setProperty("--delay", (Math.random() * .55).toFixed(2) + "s");
+        petalBox.appendChild(p);
+        setTimeout(function () { p.remove(); }, 5000);
+      })(i);
+    }
+  }
+
+  /* ---------- paper sounds (never before a real gesture) ---------- */
+  var actx = null, muted = true, gestured = false;
+  try {
+    var stored = localStorage.getItem("bk-mute");
+    muted = stored ? stored === "1" : window.matchMedia("(pointer: coarse)").matches;
+  } catch (err) {}
+
+  function markGesture(e) { if (e && e.isTrusted) gestured = true; }
+  document.addEventListener("pointerdown", markGesture, { capture: true, passive: true });
+  document.addEventListener("keydown", markGesture, { capture: true, passive: true });
+
+  function audio() {
+    if (!gestured) return null;
+    if (!actx) {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return null;
+      actx = new C();
+    }
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+
+  function whoosh() {
+    if (muted) return;
+    var c = audio(); if (!c) return;
+    var dur = 0.9, sr = c.sampleRate;
+    var buf = c.createBuffer(1, Math.floor(sr * dur), sr);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) {
+      var t = i / d.length;
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 1.7) * 0.85;
+    }
+    var src = c.createBufferSource(); src.buffer = buf;
+    var bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 0.8;
+    bp.frequency.setValueAtTime(2200, c.currentTime);
+    bp.frequency.exponentialRampToValueAtTime(700, c.currentTime + dur);
+    var g = c.createGain();
+    g.gain.setValueAtTime(0, c.currentTime);
+    g.gain.linearRampToValueAtTime(0.30, c.currentTime + 0.16);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.85);
+    src.connect(bp); bp.connect(g); g.connect(c.destination);
+    src.start();
+  }
+
+  function chime() {
+    if (muted) return;
+    var c = audio(); if (!c) return;
+    [523.25, 659.25, 830.61].forEach(function (f, i) {
+      var o = c.createOscillator(); o.type = "sine"; o.frequency.value = f;
+      var g = c.createGain();
+      var t = c.currentTime + 0.28 + i * 0.14;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.075, t + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0009, t + 1.0);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + 1.1);
+    });
+  }
+
+  function paintSoundButton() {
+    soundBtn.setAttribute("aria-pressed", muted ? "false" : "true");
+    soundBtn.setAttribute("aria-label", muted ? "Turn page sounds on" : "Turn page sounds off");
+    document.getElementById("wave1").style.display = muted ? "none" : "inline";
+    document.getElementById("wave2").style.display = muted ? "none" : "inline";
+    document.getElementById("muteSlash").style.display = muted ? "inline" : "none";
+  }
+
+  soundBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    muted = !muted;
+    try { localStorage.setItem("bk-mute", muted ? "1" : "0"); } catch (err) {}
+    paintSoundButton();
+    if (!muted) { audio(); whoosh(); }
+  });
+  paintSoundButton();
+
+  /* ---------- boot ---------- */
+  measure();
+  window.addEventListener("resize", measure);
+  requestAnimationFrame(frame);
+
+  /* the very first paint must exist before load, even with motion reduced */
+  paint();
+})();
+</script>
+</body>
+</html>

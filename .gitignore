@@ -1,0 +1,5 @@
+# screenshot / self-check output — not part of the site
+_shots/
+# version snapshots and preview copies used while iterating
+_backup/
+_preview-*.html
