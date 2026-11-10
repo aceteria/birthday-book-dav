@@ -790,8 +790,7 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   }
   function hintForOpen() {
     var word = PHONE.matches ? "tap" : "click";
-    return overflows() ? word + " the letter to read it"
-                       : word + " anywhere on the spread to close";
+    return word + " the letter to read it · " + word + " the left page to close";
   }
 
   function bloom() {
@@ -831,10 +830,11 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
 
   function toggle() { S.open ? closeBook() : openBook(); }
 
-  /* a scrollable letter must not be hijacked by the book's drag / tap-to-close */
+  /* the letter page never toggles the book: it opens the letter page-sized instead.
+     (Measuring overflow was unreliable — the note could fit, or grow past its box —
+     so the page itself is the affordance, whatever the type size ends up being.) */
   function onLetter(e) {
-    return !!(msg && S.open && e.target && e.target.closest && e.target.closest(".msg")) &&
-           (msg.scrollHeight - msg.clientHeight > 2);
+    return !!(S.open && e.target && e.target.closest && e.target.closest("#rightPage"));
   }
 
   /* ---------- pointer: click to toggle, drag to open ---------- */
