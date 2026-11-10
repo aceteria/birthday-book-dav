@@ -299,10 +299,11 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   display:flex;align-items:center;gap:.35em;
 }
 .sign svg{width:clamp(11px,calc(var(--pw)*.036),16px);height:auto;opacity:.7}
-/* soft paper fade at the letter's bottom edge while there is more to read */
+/* softer edge where a letter leaves its page (always on for phones: a short note
+   never reaches the bottom of its box, so the mask only bites when text runs long) */
 .msg.fade{
-  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
-          mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),rgba(0,0,0,0));
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 46px),rgba(0,0,0,0));
+          mask-image:linear-gradient(to bottom,#000 calc(100% - 46px),rgba(0,0,0,0));
 }
 .tape-page{
   position:absolute;left:26%;top:0;width:44%;height:calc(var(--pw)*.05);
@@ -416,6 +417,62 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
 }
 .hint.is-faded{opacity:0}
 
+/* ===== reading view: the whole letter, brought close ===== */
+.reading{
+  position:fixed;inset:0;z-index:11;
+  display:none;opacity:0;
+  transition:opacity .22s ease;
+  background:
+    radial-gradient(85% 65% at 26% 8%, #FFFCF5 0%, rgba(255,252,245,0) 62%),
+    radial-gradient(75% 60% at 84% 96%, #F0DCBE 0%, rgba(240,220,190,0) 66%),
+    #F8ECD9;
+}
+.reading.on{display:block;opacity:1}
+/* same warm grain as the scene, so the letter stays in the same world */
+.reading::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:var(--grain);background-size:190px 190px;
+  mix-blend-mode:multiply;opacity:.42;
+}
+.reading-text{
+  position:absolute;inset:0;
+  padding:max(52px,8vh) max(24px,7vw) calc(max(40px,8vh) + 46px);
+  max-width:620px;margin:0 auto;
+  overflow-y:auto;overscroll-behavior:contain;
+  font-family:var(--hand);
+  display:flex;flex-direction:column;
+}
+/* the letter floats in the middle of the page when it fits, and pins to the top when it doesn't */
+.reading-body{margin-block:auto;width:100%}
+.reading-text .msg{
+  font-size:clamp(16px,4.5vw,19px);line-height:1.54;
+  color:rgba(58,42,33,.9);
+  flex:none;max-height:none;overflow:visible;
+  -webkit-mask-image:none;mask-image:none;
+  opacity:1;transform:none;
+}
+.reading-text .msg .hello{font-size:1.3em;line-height:1.12;margin-bottom:.62em}
+.reading-text .sign{
+  margin:1.7em 0 0 auto;font-size:13px;
+  opacity:1;transform:rotate(-2deg);
+}
+.reading-close,.reading-back{
+  position:fixed;z-index:2;border:0;background:transparent;padding:0;
+  color:var(--ink-2);font-family:var(--note);cursor:pointer;
+}
+.reading-close{
+  left:max(8px,2vw);top:max(8px,1.5vh);
+  width:44px;height:44px;display:grid;place-items:center;
+}
+.reading-close svg{width:23px;height:23px}
+.reading-back{
+  left:50%;bottom:max(14px,2.4vh);transform:translateX(-50%);
+  font-size:12px;letter-spacing:.045em;padding:12px 14px;   /* 44px tall tap target */
+  text-align:center;
+}
+.reading-close:focus-visible,.reading-back:focus-visible{outline:2px solid var(--coral);outline-offset:1px}
+.reading:focus{outline:none}
+
 /* sound toggle, drawn like a little ink doodle */
 .sound{
   position:fixed;right:10px;top:10px;z-index:12;
@@ -472,11 +529,19 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   .t-buds{--l:85%!important}
   .ptape{width:calc(var(--pw)*.15);height:calc(var(--pw)*.045)}
   .stamp{display:none}
+  /* a phone page is short: the note always softens at its bottom edge, which is also
+     the cue that tapping opens the full letter */
+  .msg{
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 42px),rgba(0,0,0,0));
+            mask-image:linear-gradient(to bottom,#000 calc(100% - 42px),rgba(0,0,0,0));
+  }
   .hint{font-size:12px;letter-spacing:.03em;bottom:max(24px,19vh)}
+  /* a letter that continues past this page keeps its signature for the full view */
+  .book.long-letter .sign{display:none}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .flower,.tape,.cover,.book,.gutter,.rp-inner > *{transition-duration:.001s!important;transition-delay:0s!important}
+  .flower,.tape,.cover,.book,.gutter,.rp-inner > *,.reading{transition-duration:.001s!important;transition-delay:0s!important}
   .open-me svg,.book.is-open .s-bfly .flower{animation:none!important}
   .petal,.spark{display:none!important}
 }
@@ -585,6 +650,18 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
 
 <div class="hint" id="hint"><span id="hintText">click the book to open</span></div>
 
+<!-- ===== reading view: the letter, page-sized and legible ===== -->
+<div class="reading" id="reading" role="dialog" aria-modal="true" aria-label="The birthday letter" aria-hidden="true" tabindex="-1">
+  <div class="reading-text" id="readingText"></div>
+  <button class="reading-close" id="readingClose" type="button" aria-label="Back to the book">
+    <svg viewBox="0 0 34 34" fill="none" aria-hidden="true">
+      <path d="M9 9 C 14 14.5, 20.5 21, 25.5 26" stroke="#6E5748" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M25.5 9 C 20.5 14.5, 14 21, 8.5 25.5" stroke="#6E5748" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <button class="reading-back" id="readingBack" type="button">back to the book</button>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -596,17 +673,45 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   var petalBox = document.getElementById("petals");
   var soundBtn = document.getElementById("soundBtn");
   var msg      = document.querySelector(".msg");
+  var sign     = document.querySelector(".sign");
+  var reading  = document.getElementById("reading");
+  var rText    = document.getElementById("readingText");
+  var rClose   = document.getElementById("readingClose");
+  var rBack    = document.getElementById("readingBack");
+  var PHONE    = window.matchMedia("(max-width: 760px)");
 
-  /* the letter can scroll on a phone page: fade its bottom edge while more remains */
-  if (msg) {
-    var fadeState = function () {
-      var more = msg.scrollHeight - msg.clientHeight - msg.scrollTop > 2;
-      msg.classList.toggle("fade", more);
-    };
-    msg.addEventListener("scroll", fadeState, { passive: true });
-    window.addEventListener("resize", fadeState);
-    setTimeout(fadeState, 60);
+  /* ---------- reading view: the long letter, page-sized ---------- */
+  var readingOpen = false;
+
+  function openLetter() {
+    if (!msg || readingOpen) return;
+    rText.innerHTML = "";
+    var body = document.createElement("div");
+    body.className = "reading-body";
+    var copy = msg.cloneNode(true);
+    body.appendChild(copy);
+    if (sign) body.appendChild(sign.cloneNode(true));
+    rText.appendChild(body);
+    readingOpen = true;
+    reading.classList.add("on");
+    reading.setAttribute("aria-hidden", "false");
+    rText.scrollTop = 0;
+    try { reading.focus({ preventScroll: true }); } catch (err) {}
   }
+
+  function closeLetter() {
+    if (!readingOpen) return;
+    readingOpen = false;
+    reading.classList.remove("on");
+    reading.setAttribute("aria-hidden", "true");
+    book.focus();
+  }
+
+  if (rClose) rClose.addEventListener("click", function (e) { e.stopPropagation(); closeLetter(); });
+  if (rBack) rBack.addEventListener("click", function (e) { e.stopPropagation(); closeLetter(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && readingOpen) closeLetter();
+  });
 
   var MAX = 168;                 /* how far the cover swings */
   var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -680,11 +785,21 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   }
 
   /* ---------- open / close ---------- */
+  function overflows() {
+    return !!(msg && msg.scrollHeight - msg.clientHeight > 2);
+  }
+  function hintForOpen() {
+    var word = PHONE.matches ? "tap" : "click";
+    return overflows() ? word + " the letter to read it"
+                       : word + " anywhere on the spread to close";
+  }
+
   function bloom() {
     S.bloomed = true;
     book.classList.add("is-open");
     document.body.classList.add("is-open");
-    hintText.textContent = "click anywhere on the spread to close";
+    book.classList.toggle("long-letter", overflows());
+    hintText.textContent = hintForOpen();
     petals();
     chime();
   }
@@ -766,12 +881,8 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   book.addEventListener("click", function (e) {
     if (e.target.closest(".flower")) return;
     if (S.moved > 6) return;
-    if (onLetter(e)) {           /* tap the letter: read on, and close once it's finished */
-      var end = msg.scrollTop + msg.clientHeight >= msg.scrollHeight - 4;
-      if (end) closeBook();
-      else msg.scrollTo({ top: Math.min(msg.scrollTop + msg.clientHeight - 12, msg.scrollHeight), behavior: "smooth" });
-      return;
-    }
+    /* a letter that doesn't fit its page opens page-sized instead of scroll-wrestling a thumbnail */
+    if (onLetter(e)) { openLetter(); return; }
     toggle();
   });
 
@@ -915,6 +1026,17 @@ body.is-open .book-shadow{width:calc(var(--pw) * 1.5)}
   measure();
   window.addEventListener("resize", measure);
   requestAnimationFrame(frame);
+
+  /* the hint depends on whether the letter leaves its page: re-measure once the
+     handwriting has loaded, since fallback metrics can hide the overflow */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      if (S.bloomed) {
+        book.classList.toggle("long-letter", overflows());
+        hintText.textContent = hintForOpen();
+      }
+    });
+  }
 
   /* the very first paint must exist before load, even with motion reduced */
   paint();
